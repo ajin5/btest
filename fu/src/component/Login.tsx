@@ -1,19 +1,16 @@
 import { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 
-interface SignupForm {
-  username: string;
+interface LoginForm {
   email: string;
   password: string;
 }
 
-function Signup() {
-  const [form, setForm] = useState<SignupForm>({
-    username: "",
-    email: "",
-    password: "",
-  });
+function Login() {
+  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [message, setMessage] = useState<string>("");
+  const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,25 +19,26 @@ function Signup() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await api.post("/signup", form);
-      setMessage(res.data.message || "Signup successful");
+      const res = await api.post("/login", form);
+      localStorage.setItem("user", JSON.stringify(res.data.log));
+      setMessage("Login successful");
+      navigate("/create");
     } catch (err: any) {
-      setMessage(err.response?.data?.message || "Signup failed");
+      setMessage(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
     <div>
-      <h2>Signup</h2>
+      <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <input name="username" placeholder="Username" onChange={handleChange} />
         <input name="email" type="email" placeholder="Email" onChange={handleChange} />
         <input name="password" type="password" placeholder="Password" onChange={handleChange} />
-        <button type="submit">Signup</button>
+        <button type="submit">Login</button>
       </form>
       <p>{message}</p>
     </div>
   );
 }
 
-export default Signup;
+export default Login;

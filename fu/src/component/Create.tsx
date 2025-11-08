@@ -1,0 +1,84 @@
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+
+interface PostForm {
+  title: string;
+  description: string;
+}
+
+function Create() {
+  const [form, setForm] = useState<PostForm>({ title: "", description: "" });
+  const [message, setMessage] = useState<string>("");
+  const navigate = useNavigate();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        await api.get("/check");
+      } catch {
+        navigate("/login");
+      }
+    }
+    checkAuth();
+  }, [navigate]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/create", form);
+      setMessage(res.data.message);
+      setForm({ title: "", description: "" });
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || "Failed to create");
+    }
+  };
+
+  return (
+    <div>
+      <h2>Create Post</h2>
+      <form onSubmit={handleSubmit}>
+        <input name="title" placeholder="Title" onChange={handleChange} value={form.title} />
+        <textarea name="description" placeholder="Description" onChange={handleChange} value={form.description} />
+        <button type="submit">Create</button>
+      </form>
+      <p>{message}</p>
+    </div>
+  );
+}
+
+export default Create;
+
+
+
+
+// const handleLogout = async () => {
+//   await api.post("/logout");
+//   localStorage.removeItem("user");
+//   navigate("/login");
+// };
+
+import jwt from "jsonwebtoken";
+
+export function verifyAuth(req, res, next) {
+  try {
+    const token = req.cookies.auth;
+    if (!token) return res.status(401).json({ message: "Not logged in" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+app.post("/create", verifyAuth, async (req, res) => {
+  const { title, description } = req.body;
+  // Save to DB
+  res.status(200).json({ message: "Created successfully" });
+});
