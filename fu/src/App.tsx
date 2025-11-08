@@ -13,7 +13,7 @@ export default function App() {
         <Route path="/" element={<Cr />} />
         <Route path="/ge" element={<Id />} />
         <Route path="/ge/:id" element={<Sid />} />
-        <Route path="/ge/post" element={<Dr />} />
+        <Route path="/ge/su" element={<Dr />} />
       </Routes>
     </BrowserRouter>
   );
